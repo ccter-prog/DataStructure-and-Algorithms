@@ -3,7 +3,7 @@
 /* 任务：给定一个整数数组，找出连续子数组（至少包含一个元素）的最大乘积，返回这个乘积。 */
 int max_product_subarray(int *A, int N)
 {
-    int global_max = 0;
+    int global_max = A[0];
     if (N > 0)
     {
         for (int i = 0; i < N; i++)
@@ -24,7 +24,7 @@ int max_product_subarray(int *A, int N)
 
 int main()
 {
-    int A[] = {-2, -3, -4};
+    int A[] = {-3};
     int N = sizeof(A) / sizeof(int);
     printf("最大乘积为：%d\n", max_product_subarray(A, N));
     return 0;

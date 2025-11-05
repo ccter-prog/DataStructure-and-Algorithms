@@ -7,7 +7,7 @@ class Node
 {
     public:
         Node() : data{}, next(nullptr) {}
-        Node(T num) : data(num), next(nullptr) {}
+        explicit Node(T num) : data(num), next(nullptr) {}
     public:
         T data;
         std::unique_ptr<Node> next;

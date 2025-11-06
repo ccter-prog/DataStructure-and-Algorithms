@@ -131,13 +131,15 @@ inline typename LinkedList<T>::iterator LinkedList<T>::erase_after(typename Link
     }
     Node<T>* current_node = pos.current;
     Node<T>* old_node = current_node -> next.get();
-    if (old_node -> next)
+
+    if (old_node && old_node -> next)
     {
         current_node -> next = std::move(old_node -> next);
     }
-    else
+    else if (old_node)
     {
         current_node -> next.reset();
+        tail = current_node;
     }
     return iterator(current_node -> next.get());
 }
@@ -154,17 +156,25 @@ inline void LinkedList<T>::remove(const T& value)
     {
         if (temp && list -> data == value)
         {
-            temp -> next = std::move(list -> next);
-            if (!(temp -> next))
+            if (list -> next)
             {
+                temp -> next = std::move(list -> next);
+            }
+            else
+            {
+                temp -> next.reset();
                 tail = temp;
             }
         }
         else if (list -> data == value)
         {
-            head = std::move(head -> next);
-            if (!head)
+            if (head -> next)
             {
+                head = std::move(head -> next);
+            }
+            else
+            {
+                head.reset();
                 tail = nullptr;
             }
         }
@@ -174,7 +184,7 @@ inline void LinkedList<T>::remove(const T& value)
 template <typename T>
 inline void LinkedList<T>::clear()
 {
-    for (Node<T>* q = head.get(), p = head -> next.get(); q != nullptr; q -> next.reset(), q = p, p = p -> next);
+    for (Node<T>* q = head.get(), *p = head -> next.get(); p; q -> next.reset(), q = p, p = p -> next.get());
     head.reset();
     tail = nullptr;
 }

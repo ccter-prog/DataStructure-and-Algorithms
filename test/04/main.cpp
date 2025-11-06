@@ -4,17 +4,12 @@
 int main()
 {
     LinkedList<int> list;
-    list.add(1);
-    list.add(2);
-    LinkedList<int>::iterator temp = list.begin();
-
-    list.insert_after(temp++, 3);
-    for (auto& i : list)
+    for (int i = 0; i < 10; )
     {
-        std::cout << i << '\n';
+        list.add(i);
     }
-    std::cout.put('\n');
-    list.erase_after(temp);
+    list.add(10);
+    list.remove(0);
     for (auto& i : list)
     {
         std::cout << i << '\n';

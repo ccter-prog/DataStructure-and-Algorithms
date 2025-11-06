@@ -44,7 +44,7 @@ class LinkedList
         iterator insert_after(iterator pos, const T& value);
         iterator erase_after(iterator pos);
         void remove(const T& value);
-        void clear();
+        void clear() { head.reset(); tail = nullptr; }
         void swap(LinkedList& other);
         void unique();
         void splice_after(iterator pos, LinkedList<T>& other);
@@ -159,6 +159,7 @@ inline void LinkedList<T>::remove(const T& value)
             if (list -> next)
             {
                 temp -> next = std::move(list -> next);
+                list = temp;
             }
             else
             {
@@ -171,22 +172,16 @@ inline void LinkedList<T>::remove(const T& value)
             if (head -> next)
             {
                 head = std::move(head -> next);
+                list = head.get();
             }
             else
             {
                 head.reset();
                 tail = nullptr;
+                break;
             }
         }
     }
-}
-
-template <typename T>
-inline void LinkedList<T>::clear()
-{
-    for (Node<T>* q = head.get(), *p = head -> next.get(); p; q -> next.reset(), q = p, p = p -> next.get());
-    head.reset();
-    tail = nullptr;
 }
 
 template <typename T>

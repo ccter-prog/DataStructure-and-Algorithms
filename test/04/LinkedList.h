@@ -234,19 +234,51 @@ inline void LinkedList<T>::sort()
     {
         for (Node<T>* q = p -> next.get(), *i = nullptr; q; i = q, q = q -> next.get())
         {
-            if (p -> data > q -> data)  // 为第一轮循环头节点交换做准备
+            if (p -> data > q -> data)
             {
-                Node<T>* temp = head.release();
-                head = !j ? std::move(temp -> next) : std::move(i -> next);
-                temp -> next = std::move(q -> next);
-                head -> next = temp;
-            }
-            else if (p -> data > q -> data)  // 不检查j指针的原因是当第一个条件分支进不去时就意味着第一层循环过去了
-            {
-                Node<T>* temp = j -> next.release();
-                j -> next = std::move(p -> next);
-                p -> next -> next = temp;
+                if (!j)
+                {
+                    Node<T>* temp = head.release();
+                    if (q == p -> next.get())
+                    {
+                        head = std::move(temp -> next);
+                        Node<T>* tmp = head -> next.release();
+                        head -> next.reset(temp);
+                        temp -> next.reset(tmp);
+                        q = temp;
+                        p = head.get();
+                    }
+                    else
+                    {
+                        head = std::move(i -> next);
+                        i -> next.reset(temp);
+                        Node<T>* tmp = head -> next.release();
+                        head -> next = std::move(temp -> next);
+                        temp -> next.reset(tmp);
+                        q = temp;
+                        p = head.get();
+                    }
+                }
+                else
+                {
+                    // Node<T>* temp = j -> next.release();
+                    // j -> next = std::move(i -> next);
+                    // Node<T>* tmp = j -> next -> next.release();
+                    // j -> next -> next = std::move(temp -> next);
+                    // i -> next.reset(temp);
+                    // temp -> next.reset(tmp);
+                    // p = j -> next.get();
+                    // q = temp;
 
+                    Node<T>* temp = j -> next.release();
+                    j -> next = std::move(i -> next);
+                    Node<T>* tmp = j -> next -> next.release();
+                    j -> next -> next = std::move(temp -> next);
+                    i -> next.reset(temp);
+                    temp -> next.reset(tmp);
+                    p = j -> next.get();
+                    q = temp;
+                }
             }
         }
     }

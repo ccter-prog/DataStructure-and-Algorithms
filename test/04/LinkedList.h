@@ -230,13 +230,24 @@ inline void LinkedList<T>::sort()
     {
         return;
     }
-    for (Node<T>* p = head.get(); p; p = p -> next.get())
+    for (Node<T>* p = head.get(), *j = nullptr; p; j = p, p = p -> next.get())
     {
-        if (p == head.get() && p -> data < p -> next -> data)
+        for (Node<T>* q = p -> next.get(), *i = nullptr; q; i = q, q = q -> next.get())
         {
-            p = head.release();
-            head = std::move(head -> next);
-            head -> next = p;
+            if (p == head.get() && p -> data > q -> data)  // 为第一轮循环头节点交换做准备
+            {
+                Node<T>* temp = head.release();
+                head = q == p -> next.get() ? std::move(temp -> next) : std::move(i -> next);
+                temp -> next = std::move(q -> next);
+                head -> next = temp;
+            }
+            else if (p -> data > q -> data)  // 不检查j指针的原因是当第一个条件分支进不去时就意味着第一层循环过去了
+            {
+                Node<T>* temp = j -> next.release();
+                j -> next = std::move(p -> next);
+                p -> next -> next = temp;
+
+            }
         }
     }
 }

@@ -234,10 +234,10 @@ inline void LinkedList<T>::sort()
     {
         for (Node<T>* q = p -> next.get(), *i = nullptr; q; i = q, q = q -> next.get())
         {
-            if (p == head.get() && p -> data > q -> data)  // 为第一轮循环头节点交换做准备
+            if (p -> data > q -> data)  // 为第一轮循环头节点交换做准备
             {
                 Node<T>* temp = head.release();
-                head = q == p -> next.get() ? std::move(temp -> next) : std::move(i -> next);
+                head = !j ? std::move(temp -> next) : std::move(i -> next);
                 temp -> next = std::move(q -> next);
                 head -> next = temp;
             }

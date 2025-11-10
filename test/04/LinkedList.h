@@ -45,9 +45,12 @@ class LinkedList
         iterator erase_after(iterator pos);
         void remove(const T& value);
         void clear() { head.reset(); tail = nullptr; }
-        void swap(LinkedList& other);
+        void swap(LinkedList& other) noexcept;
         void unique();
         void splice_after(iterator pos, LinkedList<T>& other);
+        void sort();
+        template <typename Compare>
+        void sort(Compare comp);
         // 元素访问函数
         void print() const;
         T& front() { return head -> data; }
@@ -185,7 +188,7 @@ inline void LinkedList<T>::remove(const T& value)
 }
 
 template <typename T>
-inline void LinkedList<T>::swap(LinkedList<T>& other)
+inline void LinkedList<T>::swap(LinkedList<T>& other) noexcept
 {
     head.swap(other.head);
     Node<T>* temp = tail;
@@ -218,6 +221,24 @@ inline void LinkedList<T>::splice_after(typename LinkedList<T>::iterator pos, Li
     temp.swap(current_node -> next);
     current_node -> next = std::move(other.head);
     other.tail -> next = std::move(temp);
+}
+
+template <typename T>
+inline void LinkedList<T>::sort()
+{
+    if (!head)
+    {
+        return;
+    }
+    for (Node<T>* p = head.get(); p; p = p -> next.get())
+    {
+        if (p == head.get() && p -> data < p -> next -> data)
+        {
+            p = head.release();
+            head = std::move(head -> next);
+            head -> next = p;
+        }
+    }
 }
 
 template <typename T>

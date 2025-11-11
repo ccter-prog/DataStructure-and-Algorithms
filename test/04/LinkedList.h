@@ -18,6 +18,7 @@ class LinkedList
             public:
                 // 特殊成员函数
                 iterator(Node<T>* ptr = nullptr) : current(ptr) {}
+                iterator(iterator& obj) : current(obj.current) {}
             public:
                 friend LinkedList<T>;
             public:
@@ -230,59 +231,109 @@ inline void LinkedList<T>::sort()
     {
         return;
     }
-    for (Node<T>* p = head.get(), *j = nullptr; p; j = p, p = p -> next.get())
+    for (Node<T>* p = head.get(); p; p = p -> next.get())
     {
-        for (Node<T>* q = p -> next.get(), *i = nullptr; q; i = q, q = q -> next.get())
+        for (Node<T>* q = p -> next.get(); q; q = q -> next.get())
         {
             if (p -> data > q -> data)
             {
-                if (!j)
-                {
-                    Node<T>* temp = head.release();
-                    if (q == p -> next.get())
-                    {
-                        head = std::move(temp -> next);
-                        Node<T>* tmp = head -> next.release();
-                        head -> next.reset(temp);
-                        temp -> next.reset(tmp);
-                        q = temp;
-                        p = head.get();
-                    }
-                    else
-                    {
-                        head = std::move(i -> next);
-                        i -> next.reset(temp);
-                        Node<T>* tmp = head -> next.release();
-                        head -> next = std::move(temp -> next);
-                        temp -> next.reset(tmp);
-                        q = temp;
-                        p = head.get();
-                    }
-                }
-                else
-                {
-                    // Node<T>* temp = j -> next.release();
-                    // j -> next = std::move(i -> next);
-                    // Node<T>* tmp = j -> next -> next.release();
-                    // j -> next -> next = std::move(temp -> next);
-                    // i -> next.reset(temp);
-                    // temp -> next.reset(tmp);
-                    // p = j -> next.get();
-                    // q = temp;
-
-                    Node<T>* temp = j -> next.release();
-                    j -> next = std::move(i -> next);
-                    Node<T>* tmp = j -> next -> next.release();
-                    j -> next -> next = std::move(temp -> next);
-                    i -> next.reset(temp);
-                    temp -> next.reset(tmp);
-                    p = j -> next.get();
-                    q = temp;
-                }
+                T temp = p -> data;
+                p -> data = q -> data;
+                q -> data = temp;
             }
         }
     }
 }
+
+template <typename T>
+template <typename Compare>
+inline void LinkedList<T>::sort(Compare comp)
+{
+    if (!head)
+    {
+        return;
+    }
+    for (Node<T>* p = head.get(); p; p = p -> next.get())
+    {
+        for (Node<T>* q = p -> next.get(); q; q = q -> next.get())
+        {
+            if (comp(q -> data, p -> data))
+            {
+                std::swap(p -> data, q -> data);
+            }
+        }
+    }
+}
+
+// 练习指针操作，交换节点版本
+// template <typename T>
+// inline void LinkedList<T>::sort()
+// {
+//     if (!head)
+//     {
+//         return;
+//     }
+//     for (Node<T>* p = head.get(), *j = nullptr; p; j = p, p = p -> next.get())
+//     {
+//         for (Node<T>* q = p -> next.get(), *i = nullptr; q; i = q, q = q -> next.get())
+//         {
+//             if (p -> data > q -> data)
+//             {
+//                 if (!j)
+//                 {
+//                     Node<T>* temp = head.release();
+//                     if (q == p -> next.get())
+//                     {
+//                         head = std::move(temp -> next);
+//                         Node<T>* tmp = head -> next.release();
+//                         head -> next.reset(temp);
+//                         temp -> next.reset(tmp);
+//                     }
+//                     else
+//                     {
+//                         head = std::move(i -> next);
+//                         i -> next.reset(temp);
+//                         Node<T>* tmp = head -> next.release();
+//                         head -> next = std::move(temp -> next);
+//                         temp -> next.reset(tmp);
+//                     }
+//                     q = temp;
+//                     p = head.get();
+//                 }
+//                 else
+//                 {
+//                     // Node<T>* temp = j -> next.release();
+//                     // j -> next = std::move(i -> next);
+//                     // Node<T>* tmp = j -> next -> next.release();
+//                     // j -> next -> next = std::move(temp -> next);
+//                     // i -> next.reset(temp);
+//                     // temp -> next.reset(tmp);
+//                     // p = j -> next.get();
+//                     // q = temp;
+
+//                     Node<T>* temp = j -> next.release();
+//                     if (i)
+//                     {
+//                         j -> next = std::move(i -> next);
+//                         Node<T>* tmp = j -> next -> next.release();
+//                         j -> next -> next = std::move(temp -> next);
+//                         i -> next.reset(temp);
+//                         temp -> next.reset(tmp);
+//                     }
+//                     else
+//                     {
+//                         j -> next = std::move(temp -> next);
+//                         Node<T>* tmp = j -> next -> next.release();
+//                         j -> next -> next.reset(temp);
+//                         temp -> next.reset(tmp);
+//                     }
+//                     p = j -> next.get();
+//                     q = temp;
+//                 }
+//             }
+//         }
+//     }
+// }
 
 template <typename T>
 inline void LinkedList<T>::print() const

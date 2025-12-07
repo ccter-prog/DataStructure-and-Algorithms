@@ -39,6 +39,27 @@ int deQueue(Queue *pq)
     return ret;
 }
 
+int Front(Queue *pq, int *px)
+{
+    int ret = 0;
+    if (pq -> m_size > 0)
+    {
+        *px = pq -> m_data[pq -> m_front];
+        ret = 1;
+    }
+    return ret;
+}
+
+int isEmpty(Queue *pq)
+{
+    return pq -> m_size == 0;
+}
+
+int isFull(Queue *pq)
+{
+    return pq -> m_size == pq -> m_capacity;
+}
+
 void destroy(Queue *pq)
 {
     free(pq -> m_data);

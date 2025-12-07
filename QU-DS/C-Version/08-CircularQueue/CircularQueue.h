@@ -13,6 +13,9 @@ typedef struct CircularQueue
 int init(Queue *pq, const int capacity);
 int enQueue(Queue *pq, const int x);
 int deQueue(Queue *pq);
+int Front(Queue *pq, int *px);
+int isEmpty(Queue *pq);
+int isFull(Queue *pq);
 void destroy(Queue *pq);
 
 #endif

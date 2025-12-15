@@ -21,12 +21,14 @@ class BinTree
         BinNode<Elem>* find(const Elem& x) const;
         bool insert(const Elem& x, const int lorr, const Elem& value);
         void print() const;
+        void inprint() const;
     private:
         // 私有成员函数
         void rprePrint(BinNode<Elem>* pr) const;
         BinNode<Elem>* create();
         BinNode<Elem>* rfind(const Elem& x, BinNode<Elem>* pr) const;
         void rprint(BinNode<Elem>* pr, const int depth) const;
+        void rinprint(BinNode<Elem>* pr) const;
     private:
         std::unique_ptr<BinNode<Elem>> m_root;
         // int m_count;
@@ -183,6 +185,13 @@ inline void BinTree<Elem>::print() const
 }
 
 template <typename Elem>
+inline void BinTree<Elem>::inprint() const
+{
+    rinprint(m_root.get());
+    std::cout.put('\n');
+}
+
+template <typename Elem>
 inline void BinTree<Elem>::rprePrint(BinNode<Elem>* pr) const
 {
     if (pr)
@@ -230,4 +239,16 @@ inline void BinTree<Elem>::rprint(BinNode<Elem>* pr, const int depth) const
     {
         std::cout << "[/]\n";
     }
+}
+
+template <typename Elem>
+inline void BinTree<Elem>::rinprint(BinNode<Elem>* pr) const
+{
+    if (!pr)
+    {
+        return;
+    }
+    rinprint(pr -> left.get());
+    std::cout << std::format("{} ", pr -> data);
+    rinprint(pr -> right.get());
 }

@@ -7,6 +7,6 @@ int main()
     bt.insert(11, 1, 33);
     bt.insert(22, 0, 44);
     bt.insert(33, 0, 55);
-    bt.prePrint();
+    bt.print();
     return 0;
 }

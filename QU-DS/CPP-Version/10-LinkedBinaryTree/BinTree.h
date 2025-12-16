@@ -31,6 +31,7 @@ class BinTree
         void rprint(BinNode<Elem>* pr, const int depth) const;
         void rinprint(BinNode<Elem>* pr) const;
         void ipreprint(BinNode<Elem>* pr) const;
+        void ipostPrint(BinNode<Elem>* pr) const;
     private:
         std::unique_ptr<BinNode<Elem>> m_root;
         // int m_count;
@@ -55,7 +56,8 @@ template <typename Elem>
 inline void BinTree<Elem>::prePrint() const
 {
     // rprePrint(m_root.get());
-    ipreprint(m_root.get());
+    // ipreprint(m_root.get());
+    ipostPrint(m_root.get());
     std::cout.put('\n');
 }
 
@@ -272,8 +274,42 @@ inline void BinTree<Elem>::ipreprint(BinNode<Elem>* pr) const
         {
             pr = st.top();
             st.pop();
-            pr = pr -> right.get();
             std::cout << std::format("{} ", pr -> data);
+            pr = pr -> right.get();
+        }
+    }
+}
+
+template <typename Elem>
+inline void BinTree<Elem>::ipostPrint(BinNode<Elem>* pr) const
+{
+    if (!pr)
+    {
+        return;
+    }
+    std::stack<BinNode<Elem>*> st;
+    BinNode<Elem>* last_visited = nullptr;
+    while (pr || !st.empty())
+    {
+        if (pr)
+        {
+            st.push(pr);
+            pr = pr -> left.get();
+        }
+        else
+        {
+            BinNode<Elem>* temp = st.top();
+            if (temp -> right && temp -> right.get() != last_visited)
+            {
+                pr = temp -> right.get();
+            }
+            else
+            {
+                std::cout << std::format("{} ", temp -> data);
+                last_visited = temp;
+                st.pop();
+                pr = nullptr;
+            }
         }
     }
 }

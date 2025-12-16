@@ -5,6 +5,7 @@
 #include <new>
 #include <iostream>
 #include <format>
+#include <stack>
 
 template <typename Elem>
 class BinTree
@@ -29,6 +30,7 @@ class BinTree
         BinNode<Elem>* rfind(const Elem& x, BinNode<Elem>* pr) const;
         void rprint(BinNode<Elem>* pr, const int depth) const;
         void rinprint(BinNode<Elem>* pr) const;
+        void ipreprint(BinNode<Elem>* pr) const;
     private:
         std::unique_ptr<BinNode<Elem>> m_root;
         // int m_count;
@@ -52,7 +54,8 @@ inline BinTree<Elem>::BinTree(const Elem& rx)  //  : m_count(1)
 template <typename Elem>
 inline void BinTree<Elem>::prePrint() const
 {
-    rprePrint(m_root.get());
+    // rprePrint(m_root.get());
+    ipreprint(m_root.get());
     std::cout.put('\n');
 }
 
@@ -251,4 +254,27 @@ inline void BinTree<Elem>::rinprint(BinNode<Elem>* pr) const
     rinprint(pr -> left.get());
     std::cout << std::format("{} ", pr -> data);
     rinprint(pr -> right.get());
+}
+
+template <typename Elem>
+inline void BinTree<Elem>::ipreprint(BinNode<Elem>* pr) const
+{
+    if (!pr)
+    {
+        return;
+    }
+    std::stack<BinNode<Elem>*> st;
+    while (pr)
+    {
+        std::cout << std::format("{} ", pr -> data);
+        st.push(pr);
+        pr = pr -> left.get();
+        while (!pr && !st.empty())
+        {
+            pr = st.top();
+            st.pop();
+            pr = pr -> right.get();
+            
+        }
+    }
 }

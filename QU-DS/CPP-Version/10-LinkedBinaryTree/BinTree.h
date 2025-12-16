@@ -266,7 +266,6 @@ inline void BinTree<Elem>::ipreprint(BinNode<Elem>* pr) const
     std::stack<BinNode<Elem>*> st;
     while (pr)
     {
-        std::cout << std::format("{} ", pr -> data);
         st.push(pr);
         pr = pr -> left.get();
         while (!pr && !st.empty())
@@ -274,7 +273,7 @@ inline void BinTree<Elem>::ipreprint(BinNode<Elem>* pr) const
             pr = st.top();
             st.pop();
             pr = pr -> right.get();
-            
+            std::cout << std::format("{} ", pr -> data);
         }
     }
 }

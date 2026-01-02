@@ -6,6 +6,7 @@
 #include <iostream>
 #include <format>
 #include <stack>
+#include <queue>
 
 template <typename Elem>
 class BinTree
@@ -23,6 +24,7 @@ class BinTree
         bool insert(const Elem& x, const int lorr, const Elem& value);
         void print() const;
         void inprint() const;
+        void levelOrderTraversal() const;
     private:
         // 私有成员函数
         void rprePrint(BinNode<Elem>* pr) const;
@@ -193,6 +195,32 @@ template <typename Elem>
 inline void BinTree<Elem>::inprint() const
 {
     rinprint(m_root.get());
+    std::cout.put('\n');
+}
+
+template <typename Elem>
+inline void BinTree<Elem>::levelOrderTraversal() const
+{
+    if (!m_root)
+    {
+        return;
+    }
+    std::queue<BinNode<Elem>*> q;
+    q.push(m_root.get());
+    while (!q.empty())
+    {
+        BinNode<Elem>* temp = q.front();
+        q.pop();
+        std::cout << std::format("{} ", temp -> data);
+        if (temp -> left)
+        {
+            q.push(temp -> left.get());
+        }
+        if (temp -> right)
+        {
+            q.push(temp -> right.get());
+        }
+    }
     std::cout.put('\n');
 }
 

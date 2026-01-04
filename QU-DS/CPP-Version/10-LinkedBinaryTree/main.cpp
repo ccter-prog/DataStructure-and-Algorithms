@@ -1,12 +1,26 @@
 #include "BinTree.h"
+#include <string>
 
 int main()
 {
-    BinTree<int> bt(11);
-    bt.insert(11, 0, 22);
-    bt.insert(11, 1, 33);
-    bt.insert(33, 0, 44);
-    bt.levelOrderTraversal();
-    // bt.inprint();
+    std::string name;
+    std::cin >> name;
+    BinTree<std::string> bt(name);
+    std::cin >> name;
+    while (name != "-")
+    {
+        std::string lc, rc;
+        std::cin >> lc >> rc;
+        if (lc != "-")
+        {
+            bt.insert(name, 0, lc);
+        }
+        if (rc != "-")
+        {
+            bt.insert(name, 1, rc);
+        }
+        std::cin >> name;
+    }
+    std::println("Amount: {}", bt.count());
     return 0;
 }

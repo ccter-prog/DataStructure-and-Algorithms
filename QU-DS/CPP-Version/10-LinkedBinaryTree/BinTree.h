@@ -4,7 +4,7 @@
 #include <memory>
 #include <new>
 #include <iostream>
-#include <format>
+#include <print>
 #include <stack>
 #include <queue>
 
@@ -25,6 +25,7 @@ class BinTree
         void print() const;
         void inprint() const;
         void levelOrderTraversal() const;
+        int count() const;
     private:
         // 私有成员函数
         void rprePrint(BinNode<Elem>* pr) const;
@@ -34,6 +35,7 @@ class BinTree
         void rinprint(BinNode<Elem>* pr) const;
         void ipreprint(BinNode<Elem>* pr) const;
         void ipostPrint(BinNode<Elem>* pr) const;
+        int countLeaves(BinNode<Elem>* pr) const;
     private:
         std::unique_ptr<BinNode<Elem>> m_root;
         // int m_count;
@@ -211,7 +213,7 @@ inline void BinTree<Elem>::levelOrderTraversal() const
     {
         BinNode<Elem>* temp = q.front();
         q.pop();
-        std::cout << std::format("{} ", temp -> data);
+        std::print("{} ", temp -> data);
         if (temp -> left)
         {
             q.push(temp -> left.get());
@@ -225,11 +227,17 @@ inline void BinTree<Elem>::levelOrderTraversal() const
 }
 
 template <typename Elem>
+inline int BinTree<Elem>::count() const
+{
+    return countLeaves(m_root.get());
+}
+
+template <typename Elem>
 inline void BinTree<Elem>::rprePrint(BinNode<Elem>* pr) const
 {
     if (pr)
     {
-        std::cout << std::format("{} ", pr -> data);
+        std::print("{} ", pr -> data);
         rprePrint(pr -> left.get());
         rprePrint(pr -> right.get());
     }
@@ -260,17 +268,17 @@ inline void BinTree<Elem>::rprint(BinNode<Elem>* pr, const int depth) const
 {
     for (int i = 0; i < depth; i++)
     {
-        std::cout << "  ";
+        std::print("  ");
     }
     if (pr)
     {
-        std::cout << std::format("{}\n", pr -> data);
+        std::println("{}", pr -> data);
         rprint(pr -> left.get(), depth + 1);
         rprint(pr -> right.get(), depth + 1);
     }
     else
     {
-        std::cout << "[/]\n";
+        std::println("[/]");
     }
 }
 
@@ -282,7 +290,7 @@ inline void BinTree<Elem>::rinprint(BinNode<Elem>* pr) const
         return;
     }
     rinprint(pr -> left.get());
-    std::cout << std::format("{} ", pr -> data);
+    std::print("{} ", pr -> data);
     rinprint(pr -> right.get());
 }
 
@@ -302,7 +310,7 @@ inline void BinTree<Elem>::ipreprint(BinNode<Elem>* pr) const
         {
             pr = st.top();
             st.pop();
-            std::cout << std::format("{} ", pr -> data);
+            std::print("{} ", pr -> data);
             pr = pr -> right.get();
         }
     }
@@ -333,11 +341,25 @@ inline void BinTree<Elem>::ipostPrint(BinNode<Elem>* pr) const
             }
             else
             {
-                std::cout << std::format("{} ", temp -> data);
+                std::print("{} ", temp -> data);
                 last_visited = temp;
                 st.pop();
                 pr = nullptr;
             }
         }
     }
+}
+
+template <typename Elem>
+inline int BinTree<Elem>::countLeaves(BinNode<Elem>* pr) const
+{
+    if (!pr)
+    {
+        return 0;
+    }
+    if (!pr -> left && !pr -> right)
+    {
+        return 1;
+    }
+    return countLeaves(pr -> left.get()) + countLeaves(pr -> right.get());
 }

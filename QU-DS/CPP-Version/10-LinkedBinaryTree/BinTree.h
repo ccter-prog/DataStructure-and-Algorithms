@@ -357,9 +357,32 @@ inline int BinTree<Elem>::countLeaves(BinNode<Elem>* pr) const
     {
         return 0;
     }
-    if (!pr -> left && !pr -> right)
+    // if (!pr -> left && !pr -> right)
+    // {
+    //     return 1;
+    // }
+    // return countLeaves(pr -> left.get()) + countLeaves(pr -> right.get());
+
+    int result = 0;
+    std::stack<BinNode<Elem>*> bt;
+    bt.push(pr);
+    while (!bt.empty())
     {
-        return 1;
+        BinNode<Elem>* current = bt.top();
+        bt.pop();
+        if (!current -> left && !current -> right)
+        {
+            result++;
+            continue;
+        }
+        if (current -> right)
+        {
+            bt.push(current -> right.get());
+        }
+        if (current -> left)
+        {
+            bt.push(current -> left.get());
+        }
     }
-    return countLeaves(pr -> left.get()) + countLeaves(pr -> right.get());
+    return result;
 }

@@ -7,6 +7,7 @@
 #include <print>
 #include <stack>
 #include <queue>
+#include <ostream>
 
 template <typename Elem>
 class BinTree
@@ -40,14 +41,6 @@ class BinTree
         std::unique_ptr<BinNode<Elem>> m_root;
         // int m_count;
 };
-
-template <typename Elem>
-struct std::formatter<BinTree<Elem>>
-{
-    constexpr auto parse(std::format_parse_context& p)
-    {
-        re
-}
 
 template <typename Elem>
 inline BinTree<Elem>::BinTree()  //  : m_count(1)

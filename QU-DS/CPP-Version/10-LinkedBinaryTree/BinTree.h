@@ -42,6 +42,14 @@ class BinTree
 };
 
 template <typename Elem>
+struct std::formatter<BinTree<Elem>>
+{
+    constexpr auto parse(std::format_parse_context& p)
+    {
+        re
+}
+
+template <typename Elem>
 inline BinTree<Elem>::BinTree()  //  : m_count(1)
 {}
 

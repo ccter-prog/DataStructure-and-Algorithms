@@ -87,7 +87,7 @@ inline BinNode<Elem>* BSTree<Elem>::findx(const Elem& x)
 template <typename Elem>
 inline std::expected<BinNode<Elem>*, const char*> BSTree<Elem>::insert(const Elem& value)
 {
-    std::unique_ptr<BinNode<Elem>> temp(std::move(make_node<Elem>()));
+    std::unique_ptr<BinNode<Elem>> temp(m_bt.make_node());
     if (!temp)
     {
         return std::unexpected("内存分配失败");

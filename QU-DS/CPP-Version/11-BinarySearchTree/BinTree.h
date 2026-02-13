@@ -1,4 +1,5 @@
 #pragma once
+
 #include "BinNode.h"
 #include <memory>
 #include <new>
@@ -25,12 +26,11 @@ class BinTree
         void levelOrderTraversal() const;
         int count() const;
         BinNode<Elem>* get_root() const;
-        std::unique_ptr<BinNode<Elem>> make_node() noexcept;
+        BinNode<Elem>* make_node() noexcept;
         void root_reset(BinNode<Elem>* p) noexcept;
     private:
         // 私有成员函数
         void rprePrint(BinNode<Elem>* pr) const;
-        BinNode<Elem>* create() noexcept;
         BinNode<Elem>* rfind(const Elem& x, BinNode<Elem>* pr) const;
         void rprint(BinNode<Elem>* pr, const int depth) const;
         void rinprint(BinNode<Elem>* pr) const;
@@ -91,7 +91,7 @@ inline bool BinTree<Elem>::insert(const Elem& x, const int lorr, const Elem& val
             {
                 if (!found -> left)
                 {
-                    found -> left.reset(create());
+                    found -> left.reset(make_node());
                     if (found -> left)
                     {
                         found -> left -> data = value;
@@ -111,7 +111,7 @@ inline bool BinTree<Elem>::insert(const Elem& x, const int lorr, const Elem& val
             {
                 if (!found -> right)
                 {
-                    found -> right.reset(create());
+                    found -> right.reset(make_node());
                     if (found -> right)
                     {
                         found -> right -> data = value;
@@ -159,14 +159,14 @@ end:
 //         {
 //             if (!temp -> left)
 //             {
-//                 temp -> left.reset(create());
+//                 temp -> left.reset(make_node());
 //                 temp -> left -> data = rx;
 //                 m_count++;
 //                 ret = true;
 //             }
 //             else if (!temp -> right)
 //             {
-//                 temp -> right.reset(create());
+//                 temp -> right.reset(make_node());
 //                 temp -> right -> data = rx;
 //                 m_count++;
 //                 ret = true;
@@ -240,12 +240,6 @@ inline BinNode<Elem>* BinTree<Elem>::get_root() const
 }
 
 template <typename Elem>
-inline std::unique_ptr<BinNode<Elem>> BinTree<Elem>::make_node() noexcept
-{
-    return std::unique_ptr<BinNode<Elem>>(new(std::nothrow) BinNode<Elem>);
-}
-
-template <typename Elem>
 inline void BinTree<Elem>::root_reset(BinNode<Elem>* p) noexcept
 {
     m_root.reset(p);
@@ -263,7 +257,7 @@ inline void BinTree<Elem>::rprePrint(BinNode<Elem>* pr) const
 }
 
 template <typename Elem>
-inline BinNode<Elem>* BinTree<Elem>::create() noexcept
+inline BinNode<Elem>* BinTree<Elem>::make_node() noexcept
 {
     return new(std::nothrow) BinNode<Elem>;
 }

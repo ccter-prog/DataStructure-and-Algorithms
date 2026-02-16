@@ -142,60 +142,72 @@ inline bool BSTree<Elem>::remove(const Elem& x)
     }
     if (p -> left && p -> right)
     {
-        BinNode<Elem>* current = p -> left.get();
-        BinNode<Elem>* q = nullptr;
-        while (current -> right)
+        BinNode<Elem>* maxLeftParent = p;
+        BinNode<Elem>* maxLeft = p -> left.get();
+        while (maxLeft -> right)
         {
-            q = current;
-            current = current -> right.get();
+            maxLeftParent = maxLeft;
+            maxLeft = maxLeft -> right.get();
         }
-        p -> data = current -> data;
-        if (q && current -> left)
+        p -> data = maxLeft -> data;
+        if (maxLeftParent == p)
         {
-            q -> left = std::move(current -> left);
-        }
-        if (q)
-        {
-            q -> right.reset();
-        }
-        else if (!q)
-        {
-            p -> left = std::move(current -> left);
-        }
-        return true;
-    }
-    BinNode<Elem>* current = m_bt.get_root();
-    if (current -> data == x)
-    {
-        if (current -> left)
-        {
-            m_bt.root_reset(current -> left.release());
-        }
-        else if (current -> right)
-        {
-            m_bt.root_reset(current -> right.release());
-        }
-        return true;
-    }
-    BinNode<Elem>* q = get_findx_parent(x);  // 由于get_findx_parent的两个返回空指针的情况已被上下文检查完，所以不做检查
-    if (!current -> left && !current -> right)
-    {
-        if (current -> data > q -> data)
-        {
-            q -> right.reset();
+            p -> left = std::move(maxLeft -> left);
         }
         else
         {
-            q -> left.reset();
+            maxLeftParent -> right = std::move(maxLeft -> left);
+        }
+        return true;
+    }
+    if (p == m_bt.get_root())
+    {
+        if (p -> left)
+        {
+            m_bt.root_reset(p -> left.release());
+        }
+        else if (p -> right)
+        {
+            m_bt.root_reset(p -> right.release());
+        }
+        else
+        {
+            m_bt.root_reset(nullptr);
         }
     }
-    else if (current -> left)
+    BinNode<Elem>* parent = get_findx_parent(x);
+    if (p -> left)
     {
-        q -> left = std::move(current -> left);
+        if (parent -> left.get() == p)
+        {
+            parent -> left = std::move(p -> left);
+        }
+        else
+        {
+            parent -> right = std::move(p -> left);
+        }
+    }
+    else if (p -> right)
+    {
+        if (parent -> left.get() == p)
+        {
+            parent -> left = std::move(p -> right);
+        }
+        else
+        {
+            parent -> right = std::move(p -> right);
+        }
     }
     else
     {
-        q -> right = std::move(current -> right);
+        if (parent -> left.get() == p)
+        {
+            parent -> left.reset();
+        }
+        else
+        {
+            parent -> right.reset();
+        }
     }
     return true;
 }

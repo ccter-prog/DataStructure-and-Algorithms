@@ -6,10 +6,17 @@ int main()
 {
     BinTree<int> bstContainer;
     BSTree<int> bst(bstContainer);
-    bst.insert(50);
-    bst.insert(30);
-    bst.insert(70);
-    bst.remove(50);
+    bst.insert(10);
+    bst.insert(5);
+    bst.insert(20);
+    bst.insert(8);
+    bst.insert(15);
+    bst.insert(15);
+    bst.insert(2);
+    bst.insert(6);
+    bstContainer.print();
+    std::println("-------------------------");
+    bst.remove(10);
     bstContainer.print();
     return 0;
 }

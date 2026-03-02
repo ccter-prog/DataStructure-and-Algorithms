@@ -1,5 +1,4 @@
 # .clang-format
-# 基于你的 BinTree.h 代码风格生成
 
 BasedOnStyle: LLVM
 ColumnLimit: 100
@@ -12,9 +11,8 @@ Language: Cpp
 BreakBeforeBraces: Allman
 
 # ========== 类访问修饰符缩进配置 ==========
-AccessModifierOffset: -4        # public/private 向左缩进4空格
-IndentAccessModifiers: true     # 访问修饰符本身不额外缩进
-# 注意：类的内部缩进由 IndentWidth 控制，不需要单独的 IndentClass
+AccessModifierOffset: -4
+IndentAccessModifiers: true
 # ====================================
 
 # 指针和引用配置

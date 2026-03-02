@@ -1,0 +1,96 @@
+# .clang-format
+# 基于你的 BinTree.h 代码风格生成
+
+BasedOnStyle: LLVM
+ColumnLimit: 100
+IndentWidth: 4
+UseTab: Never
+TabWidth: 4
+Language: Cpp
+
+# 大括号风格 - Allman
+BreakBeforeBraces: Allman
+
+# ========== 类访问修饰符缩进配置 ==========
+AccessModifierOffset: -4        # public/private 向左缩进4空格
+IndentAccessModifiers: true     # 访问修饰符本身不额外缩进
+# 注意：类的内部缩进由 IndentWidth 控制，不需要单独的 IndentClass
+# ====================================
+
+# 指针和引用配置
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+
+# 短代码块/函数配置
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortLambdasOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+
+# 空格控制
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 2
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# switch 语句配置
+IndentCaseLabels: true
+IndentCaseBlocks: false
+
+# 模板声明
+AlwaysBreakTemplateDeclarations: Yes
+
+# 对齐
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: false
+AlignEscapedNewlines: Right
+AlignOperands: true
+AlignTrailingComments: true
+
+# 换行
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+BreakStringLiterals: true
+EmptyLineBeforeAccessModifier: Never
+
+# 其他运算符
+BinPackArguments: false
+BinPackParameters: false
+
+# 标签
+IndentGotoLabels: true
+IndentPPDirectives: None
+
+# 命名空间
+FixNamespaceComments: true
+
+# 保持空行
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 2
+
+# 注释
+
+ReflowComments: true
+CommentPragmas: '^ IWYU pragma:'

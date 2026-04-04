@@ -1,5 +1,4 @@
 # .clang-format
-# 由于没办法实现在->的左右加上空格，所以只能暂时这个样子，等待以后clang-format更新配置
 
 BasedOnStyle: LLVM
 ColumnLimit: 100

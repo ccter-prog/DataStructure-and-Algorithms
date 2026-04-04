@@ -5,13 +5,14 @@
 #include <algorithm>
 #include <expected>
 #include <stack>
+#include <utility>
 
 template <typename Elem>
 class AVLTree
 {
     public:
         // 特殊函数
-        explicit AVLTree(BSTree<Elem>& bst);
+        explicit AVLTree(BSTree<Elem>& bst);      
     public:
         // 普通成员函数
         std::expected<BinNode<Elem>*, const char*> insert(const Elem& value);
@@ -20,8 +21,9 @@ class AVLTree
         int height(BinNode<Elem>* r) const noexcept;
         void LLrotate(BinNode<Elem>* parent) noexcept;
         void RRrotate(BinNode<Elem>* parent) noexcept;
-        void LRrotate(BinNode<Elem>* node, BinNode<Elem>* parent) noexcept;
-        void RLrotate(BinNode<Elem>* node, BinNode<Elem>* parent) noexcept;
+        void LRrotate(BinNode<Elem>* parent) noexcept;
+        void RLrotate(BinNode<Elem>* parent) noexcept;
+        void updateHeight(BinNode<Elem>* node) noexcept;
     private:
         // 组合
         BSTree<Elem>& m_bst;
@@ -83,27 +85,28 @@ inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const El
     {
         BinNode<Elem>* node = path.top();
         path.pop();
-        node -> height = std::max(height(node -> left.get()), height(node -> right.get())) + 1;
+        path.size() > 0 ? parent = path.top() : nullptr;
+        updateHeight(node);
         if (height(node -> left.get()) - height(node -> right.get()) == 2)
         {
             if (value < node -> left -> data)
             {
-                LLrotate(node);
+                LLrotate(parent);
             }
             else
             {
-                LRrotate(node);
+                LRrotate(parent);
             }
         }
         else if (height(node -> right.get()) - height(node -> left.get()) == 2)
         {
             if (value > node -> right -> data)
             {
-                RRrotate(node);
+                RRrotate(parent);
             }
             else
             {
-                RLrotate(node);
+                RLrotate(parent);
             }
         }
     }
@@ -119,52 +122,65 @@ inline int AVLTree<Elem>::height(BinNode<Elem>* r) const noexcept
 template <typename Elem>
 inline void AVLTree<Elem>::LLrotate(BinNode<Elem>* parent) noexcept
 {
-
     BinTree<Elem>& bt = m_bst.get_bt();
-    if (!parent)
-    {
-        BinNode<Elem>* tmp_root = bt.get_root_release();
-        bt.root_reset(tmp_root -> left.release());
-        BinNode<Elem>* new_root = bt.get_root();
-        new_root -> right.reset(tmp_root);
-        return;
-    }
-    BinNode<Elem>* tmp_node = parent -> left.release();  // 获取node的所有权
-    parent -> left.reset(tmp_node -> left.release());
-    BinNode<Elem>* tmp_parent_lr = nullptr;
-    if (parent -> left -> right)
-    {
-        tmp_parent_lr = parent -> left -> right.release();
-    }
-    parent -> left -> right.reset(tmp_node);
-    if (tmp_parent_lr)
-    {
-        parent -> left -> right -> left.reset(tmp_parent_lr);
-    }
+    BinNode<Elem>* tmp_root = parent ? parent -> left.release() : bt.get_root_release();
+    BinNode<Elem>* new_root = tmp_root -> left.release();
+    tmp_root -> left = std::move(new_root -> right);
+    new_root -> right.reset(tmp_root);
+    parent ? parent -> left.reset(new_root) : bt.root_reset(new_root);
+    updateHeight(tmp_root);
+    updateHeight(new_root);
 }
 
 template <typename Elem>
 inline void AVLTree<Elem>::RRrotate(BinNode<Elem>* parent) noexcept
 {
     BinTree<Elem>& bt = m_bst.get_bt();
-    if (!parent)
-    {
-        BinNode<Elem>* tmp_root = bt.get_root_release();
-        bt.root_reset(tmp_root -> right.release());
-        BinNode<Elem>* new_root = bt.get_root();
-        new_root -> left.reset(tmp_root);
-        return;
-    }
-    BinNode<Elem>* tmp_node = parent -> right.release();  // 获得node所有权
-    parent -> right.reset(tmp_node -> right.release());
-    BinNode<Elem>* tmp_parent_rl = nullptr;
-    if (parent -> right -> left)
-    {
-        tmp_parent_rl = parent -> right -> left.release();
-    }
-    parent -> right -> left.reset(tmp_node);
-    if (tmp_parent_rl)
-    {
-        parent -> right -> left -> right.reset(tmp_parent_rl);
-    }
+    BinNode<Elem>* tmp_root = parent ? parent -> right.release() : bt.get_root_release();
+    BinNode<Elem>* new_root = tmp_root -> right.release();
+    tmp_root -> right = std::move(new_root -> left);
+    new_root -> left.reset(tmp_root);
+    parent ? parent -> right.reset(new_root) : bt.root_reset(new_root);
+    updateHeight(tmp_root);
+    updateHeight(new_root);
+}
+
+template <typename Elem>
+inline void AVLTree<Elem>::LRrotate(BinNode<Elem>* parent) noexcept
+{
+    BinTree<Elem>& bt = m_bst.get_bt();
+    BinNode<Elem>* tmp_root = parent ? parent -> left.release() : bt.get_root_release();
+    BinNode<Elem>* tmp_lr = tmp_root -> left -> right.release();
+    tmp_root -> left -> right = std::move(tmp_lr -> left);
+    BinNode<Elem>* tmp_l = tmp_root -> left.release();
+    tmp_root -> left = std::move(tmp_lr -> right);
+    tmp_lr -> right.reset(tmp_root);
+    tmp_lr -> left.reset(tmp_l);
+    parent ? parent -> left.reset(tmp_lr) : bt.root_reset(tmp_lr);
+    updateHeight(tmp_l);
+    updateHeight(tmp_root);
+    updateHeight(tmp_lr);
+}
+
+template <typename Elem>
+inline void AVLTree<Elem>::RLrotate(BinNode<Elem>* parent) noexcept
+{
+    BinTree<Elem>& bt = m_bst.get_bt();
+    BinNode<Elem>* tmp_root = parent ? parent -> right.release() : bt.get_root_release();
+    BinNode<Elem>* tmp_rl = tmp_root -> right -> left.release();
+    tmp_root -> right -> left = std::move(tmp_rl -> right);
+    BinNode<Elem>* tmp_r = tmp_root -> right.release();
+    tmp_root -> right = std::move(tmp_rl -> left);
+    tmp_rl -> left.reset(tmp_root);
+    tmp_rl -> right.reset(tmp_r);
+    parent ? parent -> right.reset(tmp_rl) : bt.root_reset(tmp_rl);
+    updateHeight(tmp_r);
+    updateHeight(tmp_root);
+    updateHeight(tmp_rl);
+}
+
+template <typename Elem>
+inline void AVLTree<Elem>::updateHeight(BinNode<Elem>* node) noexcept
+{
+    node -> height = std::max(height(node -> left.get()), height(node -> right.get())) + 1;
 }

@@ -6,6 +6,7 @@
 #include <print>
 #include <stack>
 #include <queue>
+#include <utility>
 
 template <typename Elem>
 class BinTree
@@ -29,6 +30,8 @@ class BinTree
         BinNode<Elem>* make_node() noexcept;
         void root_reset(BinNode<Elem>* p) noexcept;
         BinNode<Elem>* get_root_release() noexcept;
+        void root_move(std::unique_ptr<BinNode<Elem>>& ptr) noexcept;
+
     private:
         // 私有成员函数
         void rprePrint(BinNode<Elem>* pr) const;
@@ -38,6 +41,8 @@ class BinTree
         void ipreprint(BinNode<Elem>* pr) const;
         void ipostPrint(BinNode<Elem>* pr) const;
         int countLeaves(BinNode<Elem>* pr) const;
+
+
     private:
         std::unique_ptr<BinNode<Elem>> m_root;
         // int m_count;
@@ -252,6 +257,12 @@ template <typename Elem>
 inline BinNode<Elem>* BinTree<Elem>::get_root_release() noexcept
 {
     return m_root.release();
+}
+
+template <typename Elem>
+inline void BinTree<Elem>::root_move(std::unique_ptr<BinNode<Elem>>& ptr) noexcept
+{
+    m_root = std::move(ptr);
 }
 
 template <typename Elem>

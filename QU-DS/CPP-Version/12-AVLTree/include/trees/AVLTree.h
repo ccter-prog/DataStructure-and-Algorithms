@@ -24,6 +24,7 @@ class AVLTree
         void LRrotate(BinNode<Elem>* parent) noexcept;
         void RLrotate(BinNode<Elem>* parent) noexcept;
         void updateHeight(BinNode<Elem>* node) noexcept;
+        std::stack<BinNode<Elem>*> get_findx_parent(const Elem& x) noexcept;
     private:
         // 组合
         BSTree<Elem>& m_bst;
@@ -183,4 +184,20 @@ template <typename Elem>
 inline void AVLTree<Elem>::updateHeight(BinNode<Elem>* node) noexcept
 {
     node -> height = std::max(height(node -> left.get()), height(node -> right.get())) + 1;
+}
+
+template <typename Elem>
+inline std::stack<BinNode<Elem>*> AVLTree<Elem>::get_findx_parent(const Elem& x) noexcept
+{
+    BinTree<Elem>& bt = m_bst.get_bt();
+    BinNode<Elem>* current = bt.get_root();
+    std::stack<BinNode<Elem>*> st;
+    BinNode<Elem>* parent = nullptr;
+    while (current)
+    {
+        if (current -> data == x)
+        {
+            return std::stack<BinNode<Elem>*>();
+        }
+    }
 }

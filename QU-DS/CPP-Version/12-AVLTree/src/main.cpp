@@ -6,11 +6,10 @@ int main()
 {
     BinTree<int> bt;
     BSTree<int> bst(bt);
-    AVLTree<int> avl(bst);
-    avl.insert(10);
-    avl.insert(20);
-    avl.insert(30);
-    avl.insert(40);
+    bst.insert(10);
+    bst.insert(20);
+    bst.insert(5);
+    bst.remove(10);
     bt.print();
     return 0;
 }

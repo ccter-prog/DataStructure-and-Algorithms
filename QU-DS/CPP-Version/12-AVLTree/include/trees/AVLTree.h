@@ -6,6 +6,7 @@
 #include <expected>
 #include <stack>
 #include <utility>
+#include <optional>
 
 template <typename Elem>
 class AVLTree
@@ -15,7 +16,8 @@ class AVLTree
         explicit AVLTree(BSTree<Elem>& bst);      
     public:
         // 普通成员函数
-        std::expected<BinNode<Elem>*, const char*> insert(const Elem& value);
+        std::expected<BinNode<Elem>*, const char*> insert(const Elem& value) noexcept;
+        bool remove(const Elem& x) noexcept;
     private:
         // 私有成员函数
         int height(BinNode<Elem>* r) const noexcept;
@@ -24,7 +26,7 @@ class AVLTree
         void LRrotate(BinNode<Elem>* parent) noexcept;
         void RLrotate(BinNode<Elem>* parent) noexcept;
         void updateHeight(BinNode<Elem>* node) noexcept;
-        std::stack<BinNode<Elem>*> get_findx_parent(const Elem& x) noexcept;
+        std::optional<std::stack<BinNode<Elem>*>> get_findx_parent(const Elem& x) noexcept;
     private:
         // 组合
         BSTree<Elem>& m_bst;
@@ -37,7 +39,7 @@ inline AVLTree<Elem>::AVLTree(BSTree<Elem>& bst) : m_bst(bst)
 }
 
 template <typename Elem>
-inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const Elem& value)
+inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const Elem& value) noexcept
 {
     BinTree<Elem>& bt = m_bst.get_bt();
     std::unique_ptr<BinNode<Elem>> temp(bt.make_node());
@@ -115,6 +117,21 @@ inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const El
 }
 
 template <typename Elem>
+inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
+{
+    std::optional<std::stack<BinNode<Elem>*>> op(get_findx_parent(x));
+    if (!op)
+    {
+        return false;
+    }
+    BinTree<Elem>& bt = m_bst.get_bt();
+    BinNode<Elem>* root = bt.get_root();
+    std::stack<BinNode<Elem>*> st(op.value());
+    BinNode<Elem>* parent = st.top();
+    
+}
+
+template <typename Elem>
 inline int AVLTree<Elem>::height(BinNode<Elem>* r) const noexcept
 {
     return !r ? -1 : r -> height;
@@ -187,17 +204,32 @@ inline void AVLTree<Elem>::updateHeight(BinNode<Elem>* node) noexcept
 }
 
 template <typename Elem>
-inline std::stack<BinNode<Elem>*> AVLTree<Elem>::get_findx_parent(const Elem& x) noexcept
+inline std::optional<std::stack<BinNode<Elem>*>> AVLTree<Elem>::get_findx_parent(const Elem& x) noexcept
 {
     BinTree<Elem>& bt = m_bst.get_bt();
     BinNode<Elem>* current = bt.get_root();
+    if (current && current -> data == x)
+    {
+        return std::stack<BinNode<Elem>*>();
+    }
     std::stack<BinNode<Elem>*> st;
     BinNode<Elem>* parent = nullptr;
     while (current)
     {
-        if (current -> data == x)
+        parent = current;
+        st.push(parent);
+        if (x > current -> data)
         {
-            return std::stack<BinNode<Elem>*>();
+            current = current -> right.get();
+        }
+        else if (x < current -> data)
+        {
+            current = current -> left.get();            
+        }
+        else
+        {
+            return st;
         }
     }
+    return std::nullopt;
 }

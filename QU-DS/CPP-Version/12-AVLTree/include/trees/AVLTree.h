@@ -90,7 +90,7 @@ inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const El
         path.pop();
         path.size() > 0 ? parent = path.top() : nullptr;
         updateHeight(node);
-        if (height(node -> left.get()) - height(node -> right.get()) == 2)
+        if (height(node -> left.get()) - height(node -> right.get()) >= 2)
         {
             if (value < node -> left -> data)
             {
@@ -101,7 +101,7 @@ inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const El
                 LRrotate(parent);
             }
         }
-        else if (height(node -> right.get()) - height(node -> left.get()) == 2)
+        else if (height(node -> right.get()) - height(node -> left.get()) >= 2)
         {
             if (value > node -> right -> data)
             {
@@ -124,11 +124,63 @@ inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
     {
         return false;
     }
-    BinTree<Elem>& bt = m_bst.get_bt();
-    BinNode<Elem>* root = bt.get_root();
     std::stack<BinNode<Elem>*> st(op.value());
-    BinNode<Elem>* parent = st.top();
-    
+    BinNode<Elem>* parent = st.size() > 0 ? st.top() : nullptr;
+    BinNode<Elem>* node = nullptr;
+    BinTree<Elem>& bt = m_bst.get_bt();
+    if (!parent)
+    {
+        node = bt.get_root();
+    }
+    else
+    {
+        node = parent -> data > x ? parent -> right.get() : parent -> left.get();
+    }
+    if (node -> left && node -> right)
+    {
+        BinNode<Elem>* MaxLeftParent = node;
+        BinNode<Elem>* MaxLeft = node -> left.get();
+        while (MaxLeft -> right)
+        {
+            st.push(MaxLeftParent);
+            MaxLeftParent = MaxLeft;
+            MaxLeft = MaxLeft -> right.get();
+        }
+        node -> data = MaxLeft -> data;
+        if (MaxLeftParent == node)
+        {
+            node -> left = std::move(MaxLeft -> left);
+        }
+        else
+        {
+            MaxLeftParent -> right = std::move(MaxLeft -> right);
+        }
+        goto end;
+    }
+    if (st.size() == 0)
+    {
+        BinNode<Elem>* root = bt.get_root();
+        if (root -> left)
+        {
+            bt.root_move(root -> left);
+        }
+        else if (root -> right)
+        {
+            bt.root_move(root -> right);
+        }
+        else
+        {
+            bt.root_reset(nullptr);
+        }
+    }
+end:
+    while (!st.empty())
+    {
+        BinNode<Elem>* temp = st.top();
+        updateHeight(temp);
+        st.pop();
+    }
+    return true;
 }
 
 template <typename Elem>

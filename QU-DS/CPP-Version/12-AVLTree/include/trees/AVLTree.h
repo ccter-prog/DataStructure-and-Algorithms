@@ -1,3 +1,9 @@
+/*
+ * AVL 树实现，基于 BSTree 提供自平衡插入操作
+ * 使用栈跟踪插入路径，便于回溯进行旋转平衡
+ * remove 函数仍在实现中，平衡调整逻辑复杂
+ */
+
 #pragma once
 
 #include "BSTree.h"
@@ -12,35 +18,42 @@ template <typename Elem>
 class AVLTree
 {
     public:
-        // 特殊函数
+        // 显式构造函数确保组合关系明确
         explicit AVLTree(BSTree<Elem>& bst);      
     public:
         // 普通成员函数
+        // insert 返回 expected 处理插入失败，noexcept 保证不抛异常
         std::expected<BinNode<Elem>*, const char*> insert(const Elem& value) noexcept;
+        // remove 仍在实现中，AVL 删除平衡比插入更复杂
         bool remove(const Elem& x) noexcept;
     private:
         // 私有成员函数
+        // height 返回 -1 表示空节点，便于平衡因子计算
         int height(BinNode<Elem>* r) const noexcept;
+        // 旋转函数实现 AVL 四种旋转，保持平衡
         void LLrotate(BinNode<Elem>* parent) noexcept;
         void RRrotate(BinNode<Elem>* parent) noexcept;
         void LRrotate(BinNode<Elem>* parent) noexcept;
         void RLrotate(BinNode<Elem>* parent) noexcept;
+        // 更新高度使用递归 max，避免手动计算错误
         void updateHeight(BinNode<Elem>* node) noexcept;
+        // 使用栈返回父节点路径，便于删除时平衡调整
         std::optional<std::stack<BinNode<Elem>*>> get_findx_parent(const Elem& x) noexcept;
     private:
-        // 组合
+        // 组合 BSTree 复用 BST 操作
         BSTree<Elem>& m_bst;
 };
 
 template <typename Elem>
 inline AVLTree<Elem>::AVLTree(BSTree<Elem>& bst) : m_bst(bst)
 {
-
+    // 构造函数仅初始化引用，保持轻量
 }
 
 template <typename Elem>
 inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const Elem& value) noexcept
 {
+    // 使用栈记录插入路径，便于回溯平衡
     BinTree<Elem>& bt = m_bst.get_bt();
     std::unique_ptr<BinNode<Elem>> temp(bt.make_node());
     if (!temp)
@@ -84,12 +97,14 @@ inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const El
         parent -> left = std::move(temp);
         result = parent -> left.get();
     }
+    // 回溯路径更新高度并检查平衡
     while (!path.empty())
     {
         BinNode<Elem>* node = path.top();
         path.pop();
         path.size() > 0 ? parent = path.top() : nullptr;
         updateHeight(node);
+        // 检查平衡因子，触发相应旋转
         if (height(node -> left.get()) - height(node -> right.get()) >= 2)
         {
             if (value < node -> left -> data)
@@ -119,6 +134,7 @@ inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const El
 template <typename Elem>
 inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
 {
+    // remove 实现中，AVL 删除平衡逻辑复杂，需处理多种情况
     std::optional<std::stack<BinNode<Elem>*>> op(get_findx_parent(x));
     if (!op)
     {
@@ -136,6 +152,7 @@ inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
     {
         node = parent -> data > x ? parent -> right.get() : parent -> left.get();
     }
+    // 处理两子节点情况，用左子树最大替换
     if (node -> left && node -> right)
     {
         BinNode<Elem>* MaxLeftParent = node;
@@ -157,6 +174,7 @@ inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
         }
         goto end;
     }
+    // 处理根节点
     if (st.size() == 0)
     {
         BinNode<Elem>* root = bt.get_root();
@@ -174,6 +192,7 @@ inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
         }
     }
 end:
+    // 回溯更新高度，平衡调整待实现
     while (!st.empty())
     {
         BinNode<Elem>* temp = st.top();
@@ -186,12 +205,14 @@ end:
 template <typename Elem>
 inline int AVLTree<Elem>::height(BinNode<Elem>* r) const noexcept
 {
+    // 返回 -1 表示空节点，便于平衡因子计算（左高-右高）
     return !r ? -1 : r -> height;
 }
 
 template <typename Elem>
 inline void AVLTree<Elem>::LLrotate(BinNode<Elem>* parent) noexcept
 {
+    // LL 旋转：左子树左边过高，通过右旋恢复平衡
     BinTree<Elem>& bt = m_bst.get_bt();
     BinNode<Elem>* tmp_root = parent ? parent -> left.release() : bt.get_root_release();
     BinNode<Elem>* new_root = tmp_root -> left.release();
@@ -205,6 +226,7 @@ inline void AVLTree<Elem>::LLrotate(BinNode<Elem>* parent) noexcept
 template <typename Elem>
 inline void AVLTree<Elem>::RRrotate(BinNode<Elem>* parent) noexcept
 {
+    // RR 旋转：右子树右边过高，通过左旋恢复平衡
     BinTree<Elem>& bt = m_bst.get_bt();
     BinNode<Elem>* tmp_root = parent ? parent -> right.release() : bt.get_root_release();
     BinNode<Elem>* new_root = tmp_root -> right.release();
@@ -218,6 +240,7 @@ inline void AVLTree<Elem>::RRrotate(BinNode<Elem>* parent) noexcept
 template <typename Elem>
 inline void AVLTree<Elem>::LRrotate(BinNode<Elem>* parent) noexcept
 {
+    // LR 旋转：左子树右边过高，先左旋再右旋
     BinTree<Elem>& bt = m_bst.get_bt();
     BinNode<Elem>* tmp_root = parent ? parent -> left.release() : bt.get_root_release();
     BinNode<Elem>* tmp_lr = tmp_root -> left -> right.release();
@@ -235,6 +258,7 @@ inline void AVLTree<Elem>::LRrotate(BinNode<Elem>* parent) noexcept
 template <typename Elem>
 inline void AVLTree<Elem>::RLrotate(BinNode<Elem>* parent) noexcept
 {
+    // RL 旋转：右子树左边过高，先右旋再左旋
     BinTree<Elem>& bt = m_bst.get_bt();
     BinNode<Elem>* tmp_root = parent ? parent -> right.release() : bt.get_root_release();
     BinNode<Elem>* tmp_rl = tmp_root -> right -> left.release();
@@ -252,12 +276,14 @@ inline void AVLTree<Elem>::RLrotate(BinNode<Elem>* parent) noexcept
 template <typename Elem>
 inline void AVLTree<Elem>::updateHeight(BinNode<Elem>* node) noexcept
 {
+    // 使用 std::max 确保高度正确计算，避免手动 max 错误
     node -> height = std::max(height(node -> left.get()), height(node -> right.get())) + 1;
 }
 
 template <typename Elem>
 inline std::optional<std::stack<BinNode<Elem>*>> AVLTree<Elem>::get_findx_parent(const Elem& x) noexcept
 {
+    // 返回栈包含从根到父节点的路径，便于删除时平衡调整
     BinTree<Elem>& bt = m_bst.get_bt();
     BinNode<Elem>* current = bt.get_root();
     if (current && current -> data == x)

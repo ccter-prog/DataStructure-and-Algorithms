@@ -1,7 +1,7 @@
 /*
- * AVL 树实现，基于 BSTree 提供自平衡插入操作
- * 使用栈跟踪插入路径，便于回溯进行旋转平衡
- * remove 函数仍在实现中，平衡调整逻辑复杂
+ * AVL 树实现，基于 BSTree 提供自平衡插入和删除操作
+ * 使用栈跟踪路径，便于回溯进行旋转平衡
+ * 插入和删除均实现自平衡，保持树的高度平衡
  */
 
 #pragma once
@@ -24,7 +24,7 @@ class AVLTree
         // 普通成员函数
         // insert 返回 expected 处理插入失败，noexcept 保证不抛异常
         std::expected<BinNode<Elem>*, const char*> insert(const Elem& value) noexcept;
-        // remove 仍在实现中，AVL 删除平衡比插入更复杂
+        // remove 实现 AVL 删除平衡，处理多种情况并调整平衡
         bool remove(const Elem& x) noexcept;
     private:
         // 私有成员函数
@@ -102,7 +102,7 @@ inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const El
     {
         BinNode<Elem>* node = path.top();
         path.pop();
-        path.size() > 0 ? parent = path.top() : nullptr;
+        parent = path.size() > 0 ? path.top() : nullptr;
         updateHeight(node);
         // 检查平衡因子，触发相应旋转
         if (height(node -> left.get()) - height(node -> right.get()) >= 2)
@@ -134,7 +134,7 @@ inline std::expected<BinNode<Elem>*, const char*> AVLTree<Elem>::insert(const El
 template <typename Elem>
 inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
 {
-    // remove 实现中，AVL 删除平衡逻辑复杂，需处理多种情况
+    // remove 实现 AVL 删除，处理多种情况并进行平衡调整
     std::optional<std::stack<BinNode<Elem>*>> op(get_findx_parent(x));
     if (!op)
     {
@@ -170,8 +170,23 @@ inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
         }
         else
         {
-            MaxLeftParent -> right = std::move(MaxLeft -> right);
+            MaxLeftParent -> right = std::move(MaxLeft -> left);
         }
+        goto end;
+    }
+    else if (parent && node -> left)
+    {
+        parent -> left = std::move(node -> left);
+        goto end;
+    }
+    else if (parent && node -> right)
+    {
+        parent -> right = std::move(node -> right);
+        goto end;
+    }
+    else if (parent && !node -> left && !node -> right)
+    {
+        parent -> left.get == node ? parent -> left.reset() : parent -> right.reset();
         goto end;
     }
     // 处理根节点
@@ -192,12 +207,35 @@ inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
         }
     }
 end:
-    // 回溯更新高度，平衡调整待实现
+    // 回溯更新高度并进行平衡调整
     while (!st.empty())
     {
         BinNode<Elem>* temp = st.top();
-        updateHeight(temp);
         st.pop();
+        BinNode<Elem>* parent = st.empty() ? nullptr : st.top();
+        updateHeight(temp);
+        if (height(temp -> left.get()) - height(temp -> right.get()) >= 2)
+        {
+            if (height(temp -> left -> left.get()) >= height(temp -> left -> right.get()))
+            {
+                LLrotate(parent);
+            }
+            else
+            {
+                LRrotate(parent);
+            }
+        }
+        else if (height(temp -> right.get()) - height(temp -> left.get()) >= 2)
+        {
+            if (height(temp -> right -> right.get()) >= height(temp -> right -> left.get()))
+            {
+                RRrotate(parent);
+            }
+            else
+            {
+                RLrotate(parent);
+            }
+        }
     }
     return true;
 }

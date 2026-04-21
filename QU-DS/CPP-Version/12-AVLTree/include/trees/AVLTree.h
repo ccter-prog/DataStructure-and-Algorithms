@@ -47,7 +47,7 @@ class AVLTree
 template <typename Elem>
 inline AVLTree<Elem>::AVLTree(BSTree<Elem>& bst) : m_bst(bst)
 {
-    // 构造函数仅初始化引用，保持轻量
+
 }
 
 template <typename Elem>
@@ -150,8 +150,9 @@ inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
     }
     else
     {
-        node = parent -> data > x ? parent -> right.get() : parent -> left.get();
+        node = parent -> data > x ? parent -> left.get() : parent -> right.get();
     }
+    bool isLeft = parent && parent -> left.get() == node ? true : false;
     // 处理两子节点情况，用左子树最大替换
     if (node -> left && node -> right)
     {
@@ -174,19 +175,29 @@ inline bool AVLTree<Elem>::remove(const Elem& x) noexcept
         }
         goto end;
     }
-    else if (parent && node -> left)
+    else if (parent && isLeft && node -> left)
     {
         parent -> left = std::move(node -> left);
         goto end;
     }
-    else if (parent && node -> right)
+    else if (parent && !isLeft && node -> left)
+    {
+        parent -> right = std::move(node -> left);
+        goto end;
+    }
+    else if (parent && !isLeft && node -> right)
     {
         parent -> right = std::move(node -> right);
         goto end;
     }
+    else if (parent && isLeft && node -> right)
+    {
+        parent -> left = std::move(node -> right);
+        goto end;
+    }
     else if (parent && !node -> left && !node -> right)
     {
-        parent -> left.get == node ? parent -> left.reset() : parent -> right.reset();
+        parent -> left.get() == node ? parent -> left.reset() : parent -> right.reset();;
         goto end;
     }
     // 处理根节点
@@ -212,7 +223,7 @@ end:
     {
         BinNode<Elem>* temp = st.top();
         st.pop();
-        BinNode<Elem>* parent = st.empty() ? nullptr : st.top();
+        parent = st.empty() ? nullptr : st.top();
         updateHeight(temp);
         if (height(temp -> left.get()) - height(temp -> right.get()) >= 2)
         {
@@ -333,7 +344,6 @@ inline std::optional<std::stack<BinNode<Elem>*>> AVLTree<Elem>::get_findx_parent
     while (current)
     {
         parent = current;
-        st.push(parent);
         if (x > current -> data)
         {
             current = current -> right.get();
@@ -346,6 +356,7 @@ inline std::optional<std::stack<BinNode<Elem>*>> AVLTree<Elem>::get_findx_parent
         {
             return st;
         }
+        st.push(parent);
     }
     return std::nullopt;
 }

@@ -20,5 +20,6 @@ void heap_destroy(struct heap *obj);
 void heap_print(const struct heap *obj);
 bool heap_insert(struct heap *obj, const Elem value);
 struct expected heap_remove(struct heap *obj);
+struct heap heap_build(const Elem *array, const size_t size);
 
 #endif

@@ -1,4 +1,5 @@
 #include "../include/heap.h"
+#include "../include/expected.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -7,6 +8,7 @@
 
 static bool heap_grow(struct heap *obj);
 static void heap_percolate_up(struct heap *obj, size_t index);
+static void heap_percolate_down(struct heap *obj, size_t index);
 
 struct heap heap_init(const size_t capacity)
 {
@@ -60,6 +62,22 @@ bool heap_insert(struct heap *obj, const Elem value)
     return true;
 }
 
+struct expected heap_remove(struct heap *obj)
+{
+    struct expected result;
+    if (!obj->size)
+    {
+        result.error = "堆为空, remove失败";
+        result.has_value = EXPECTED_ERROR;
+        return result;
+    }
+    result.value = obj->data[1];
+    result.has_value = EXPECTED_OK;
+    obj->data[1] = obj->data[obj->size--];
+    heap_percolate_down(obj, 1);
+    return result;
+}
+
 static bool heap_grow(struct heap *obj)
 {
     // 计算新的分配大小：容量翻倍 + 1个哨兵位
@@ -101,4 +119,28 @@ static void heap_percolate_up(struct heap *obj, size_t index)
         obj->data[i] = obj->data[i / 2]; // 父节点下移
     }
     obj->data[i] = temp; // 将元素放入最终找到的正确位置
+}
+
+static void heap_percolate_down(struct heap *obj, size_t index)
+{
+    Elem temp = obj->data[index];
+    size_t i = index;
+    size_t child;
+    for (; i * 2 <= obj->size; i = child)
+    {
+        child = i * 2;
+        if (child != obj->size && obj->data[child] > obj->data[child + 1])
+        {
+            ++child;
+        }
+        if (obj->data[i] > obj->data[child])
+        {
+            obj->data[i] = obj->data[child];
+        }
+        else
+        {
+            break;
+        }
+    }
+    obj->data[i] = temp;
 }

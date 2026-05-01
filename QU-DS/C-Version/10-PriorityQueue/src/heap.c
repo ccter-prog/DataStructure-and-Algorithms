@@ -116,6 +116,11 @@ struct heap heap_build(const Elem *array, const size_t size)
 // 提高指定元素的优先级（减小键值），并通过上浮操作恢复堆性质
 bool heap_decrease_key(struct heap *obj, const Elem old_value, const Elem new_value)
 {
+    // 校验：提高优先级意味着键值必须减小
+    if (new_value >= old_value)
+    {
+        return false;
+    }
     // 先搜索旧值的位置，如果不存在则直接返回失败
     ssize_t index = heap_search(obj, old_value);
     if (index == -1)
@@ -132,6 +137,11 @@ bool heap_decrease_key(struct heap *obj, const Elem old_value, const Elem new_va
 // 降低指定元素的优先级（增大键值），并通过下沉操作恢复堆性质
 bool heap_increase_key(struct heap *obj, const Elem old_value, const Elem new_value)
 {
+    // 校验：降低优先级意味着键值必须增大
+    if (new_value <= old_value)
+    {
+        return false;
+    }
     // 先搜索旧值的位置，如果不存在则直接返回失败
     ssize_t index = heap_search(obj, old_value);
     if (index == -1)

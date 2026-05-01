@@ -21,5 +21,8 @@ void heap_print(const struct heap *obj);
 bool heap_insert(struct heap *obj, const Elem value);
 struct expected heap_remove(struct heap *obj);
 struct heap heap_build(const Elem *array, const size_t size);
+bool heap_decrease_key(struct heap *obj, const Elem old_value, const Elem new_value);
+bool heap_increase_key(struct heap *obj, const Elem old_value, const Elem new_value);
+struct expected heap_delete(struct heap *obj, const Elem value);
 
 #endif

@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <corecrt.h>
 
 static bool heap_grow(struct heap *obj);
 static void heap_percolate_up(struct heap *obj, size_t index);
 static void heap_percolate_down(struct heap *obj, size_t index);
+static ssize_t heap_search(const struct heap *obj, const Elem value);
 
 struct heap heap_init(const size_t capacity)
 {
@@ -111,6 +113,62 @@ struct heap heap_build(const Elem *array, const size_t size)
     return obj;
 }
 
+// 提高指定元素的优先级（减小键值），并通过上浮操作恢复堆性质
+bool heap_decrease_key(struct heap *obj, const Elem old_value, const Elem new_value)
+{
+    // 先搜索旧值的位置，如果不存在则直接返回失败
+    ssize_t index = heap_search(obj, old_value);
+    if (index == -1)
+    {
+        return false;
+    }
+    // 更新键值。在最小堆中，减小值可能导致该节点比父节点更小
+    obj->data[index] = new_value;
+    // 执行上浮操作，确保该节点回到正确的位置以维持最小堆性质
+    heap_percolate_up(obj, (size_t)index);
+    return true;
+}
+
+// 降低指定元素的优先级（增大键值），并通过下沉操作恢复堆性质
+bool heap_increase_key(struct heap *obj, const Elem old_value, const Elem new_value)
+{
+    // 先搜索旧值的位置，如果不存在则直接返回失败
+    ssize_t index = heap_search(obj, old_value);
+    if (index == -1)
+    {
+        return false;
+    }
+    // 更新键值。在最小堆中，增大值可能导致该节点比子节点更大
+    obj->data[index] = new_value;
+    // 执行下沉操作，确保该节点回到正确的位置以维持最小堆性质
+    heap_percolate_down(obj, (size_t)index);
+    return true;
+}
+
+// 删除指定值的元素，并返回被删除的值；通过“移至堆顶再移除”的方式实现
+struct expected heap_delete(struct heap *obj, const Elem value)
+{
+    struct expected result;
+    // 搜索目标元素的位置
+    ssize_t index = heap_search(obj, value);
+    if (index == -1)
+    {
+        result.has_value = EXPECTED_ERROR;
+        result.error = "空树或未找到";
+        return result;
+    }
+    // 保存待删除的值用于返回
+    result.value = obj->data[index];
+    result.has_value = EXPECTED_OK;
+    
+    // 核心思路：将该位置的值设为极小值（INT_MIN），使其上浮至堆顶
+    // 然后复用 heap_remove 删除堆顶元素，从而间接实现任意位置删除
+    obj->data[index] = INT_MIN;
+    heap_percolate_up(obj, (size_t)index);
+    heap_remove(obj);
+    return result;
+}
+
 static bool heap_grow(struct heap *obj)
 {
     // 计算新的分配大小：容量翻倍 + 1个哨兵位
@@ -182,4 +240,18 @@ static void heap_percolate_down(struct heap *obj, size_t index)
     }
     // 将暂存的原始值放入最终确定的位置
     obj->data[i] = temp;
+}
+
+// 线性搜索堆中的元素，返回其索引（从1开始），未找到返回 -1
+static ssize_t heap_search(const struct heap *obj, const Elem value)
+{
+    if (!obj->data)
+    {
+        return -1;
+    }
+    // 从索引1开始遍历所有有效元素
+    size_t i = 1;
+    for (; i <= obj->size && obj->data[i] != value; ++i);
+    // 判断是否找到目标值
+    return obj->data[i] == value ? (ssize_t)i : -1;
 }

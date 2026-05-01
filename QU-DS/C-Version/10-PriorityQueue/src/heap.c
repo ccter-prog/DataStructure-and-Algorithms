@@ -262,6 +262,6 @@ static ssize_t heap_search(const struct heap *obj, const Elem value)
     // 从索引1开始遍历所有有效元素
     size_t i = 1;
     for (; i <= obj->size && obj->data[i] != value; ++i);
-    // 判断是否找到目标值
-    return obj->data[i] == value ? (ssize_t)i : -1;
+    // 利用短路求值确保索引合法后再访问数组，兼顾安全与性能
+    return i <= obj->size && obj->data[i] == value ? (ssize_t)i : -1;
 }

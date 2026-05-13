@@ -284,11 +284,6 @@ inline void DisjointSet<T>::print() const
 // 1. 通过map找到元素索引
 // 2. 沿parent指针向上追溯到根节点(parent[i]==0)
 // 3. 路径压缩：将查找路径上的所有节点直接连接到根节点
-//
-// 为什么需要路径压缩？
-// - 平摊时间复杂度从O(n)降至O(α(n))，α是反阿克曼函数，几乎为常数
-// - 后续查找同一集合中的元素会更快
-//
 // 实现细节：
 // - 第一次while循环：找到根节点
 // - 第二次while循环：回溯时将路径上节点直接连到根
@@ -340,17 +335,9 @@ inline std::optional<std::size_t> DisjointSet<T>::find(const T& value)
     return i;
 }
 
-// union_set: 合并两个元素所在的集合，采用按秩合并(Union by Rank)策略
-// 这里的"秩"用树的大小(tree_size)代替
-//
 // 合并策略：
 // - 比较两棵树的size，将小树挂到大树下
 // - 更新大树的size为两树size之和
-//
-// 为什么需要按秩合并？
-// 1. 防止树退化成链表，保持树的平衡性
-// 2. 与路径压缩配合，使并查集操作接近O(1)
-// 3. 单独使用路径压缩可能导致某些情况下树仍然很深
 template <typename T>
 inline bool DisjointSet<T>::union_set(const T& value1, const T& value2)
 {
@@ -424,11 +411,6 @@ inline bool DisjointSet<T>::connected(const T& value1, const T& value2)
 // 1. 若指定new_capacity且大于当前容量，按指定值扩容
 // 2. 若new_capacity小于当前容量，拒绝操作(不支持缩容)
 // 3. 若new_capacity等于当前容量或未指定，则翻倍扩容
-//
-// 为什么选择翻倍策略？
-// - 类似vector的扩容策略，摊还时间复杂度O(1)
-// - 避免频繁realloc导致的性能抖动
-// - 空间换时间的经典权衡
 template <typename T>
 inline bool DisjointSet<T>::grow(const std::size_t new_capacity)
 {
@@ -442,7 +424,6 @@ inline bool DisjointSet<T>::grow(const std::size_t new_capacity)
     else if (new_capacity < m_capacity)
     {
         // 不支持缩容：返回false表示操作被拒绝
-        // 原因：缩容需要重新映射所有元素的索引，复杂度高且容易出错
         return false;
     }
     else

@@ -6,7 +6,11 @@
 #include <new>
 #include <optional>
 #include <print>
+#include <set>
+#include <string>
+#include <type_traits>
 #include <utility>
+
 
 template <typename T>
 class DisjointSet
@@ -32,12 +36,15 @@ class DisjointSet
                 T* ptr;
         };
     public:
+        // 迭代器函数
         Iterator begin() const;
         Iterator end() const;
     public:
+        // 运算符重载
         DisjointSet& operator=(const DisjointSet& obj);
         DisjointSet& operator=(DisjointSet&& obj) noexcept;
     public:
+        // 成员函数
         bool insert(const T& value);
         void print() const;
         std::optional<std::size_t> find(const T& value);
@@ -46,13 +53,17 @@ class DisjointSet
         bool grow(const std::size_t new_capacity = 0);
         std::size_t get_size() const;
         std::size_t get_capacity() const;
+        std::tuple<std::size_t, std::size_t> find_max() const;
+        bool status() const;
     private:
+        // 私有成员变量
         std::unique_ptr<T[]> m_data;
         std::unique_ptr<std::size_t[]> m_parent;
         std::map<T, std::size_t> m_map;
         std::unique_ptr<std::size_t[]> m_tree_size;
         std::size_t m_capacity;
         std::size_t m_size;
+        std::unique_ptr<std::set<T>[]> m_mates;
 };
 
 // 构造函数：初始化指定容量的并查集
@@ -65,7 +76,15 @@ inline DisjointSet<T>::DisjointSet(std::size_t capacity)
 {
     // 检查内存分配是否成功：三个数组必须同时成功或同时失败
     // 如果任何一个分配失败，保持m_capacity=0表示未初始化状态
-    if (m_data && m_parent && m_tree_size)
+    if constexpr (std::is_same_v<T, std::string>)
+    {
+        m_mates.reset(new (std::nothrow) std::set<T>[capacity + 1]);
+        if (m_data && m_parent && m_tree_size && m_mates)
+        {
+            m_capacity = capacity;
+        }
+    }
+    else if (m_data && m_parent && m_tree_size)
     {
         m_capacity = capacity;
     }
@@ -82,7 +101,18 @@ inline DisjointSet<T>::DisjointSet(const DisjointSet<T>& obj)
 {
     // 如果内存分配失败，将容量和大小置为0，防止后续访问无效内存
     // 注意：此时m_map已经通过初始化列表完成拷贝，但数组指针可能为空
-    if (!m_data || !m_parent || !m_tree_size)
+    constexpr bool is_string = std::is_same_v<T, std::string>;
+    if constexpr (is_string)
+    {
+        m_mates.reset(new (std::nothrow) std::set<T>[obj.m_capacity + 1]);
+        if (!m_data || !m_parent || !m_tree_size || !m_mates)
+        {
+            m_capacity = 0;
+            m_size = 0;
+            return;
+        }
+    }
+    else if (!m_data || !m_parent || !m_tree_size)
     {
         m_capacity = 0;
         m_size = 0;
@@ -95,6 +125,10 @@ inline DisjointSet<T>::DisjointSet(const DisjointSet<T>& obj)
         m_data[i] = obj.m_data[i];
         m_parent[i] = obj.m_parent[i];
         m_tree_size[i] = obj.m_tree_size[i];
+        if constexpr (is_string)
+        {
+            m_mates[i] = obj.m_mates[i];
+        }
     }
 }
 
@@ -103,7 +137,8 @@ inline DisjointSet<T>::DisjointSet(const DisjointSet<T>& obj)
 template <typename T>
 inline DisjointSet<T>::DisjointSet(DisjointSet<T>&& obj) noexcept
     : m_data(std::move(obj.m_data)), m_parent(std::move(obj.m_parent)), m_map(std::move(obj.m_map)),
-      m_tree_size(std::move(obj.m_tree_size)), m_capacity(obj.m_capacity), m_size(obj.m_size)
+      m_tree_size(std::move(obj.m_tree_size)), m_capacity(obj.m_capacity), m_size(obj.m_size),
+      m_mates(std::move(obj.m_mates))
 {
     // 清空源对象状态，防止析构时重复释放内存
     // unique_ptr移动后源对象自动变为nullptr，但m_capacity和m_size需要手动清零
@@ -181,7 +216,17 @@ inline DisjointSet<T>& DisjointSet<T>::operator=(const DisjointSet<T>& obj)
     std::unique_ptr<std::size_t[]> temp_parent(new (std::nothrow) std::size_t[obj.m_capacity + 1]);
     std::unique_ptr<std::size_t[]> temp_tree_size(new (std::nothrow)
                                                       std::size_t[obj.m_capacity + 1]);
-    if (!temp_data || !temp_parent || !temp_tree_size)
+    constexpr bool is_string = std::is_same_v<T, std::string>;
+    std::unique_ptr<std::set<T>[]> temp_mates;
+    if constexpr (is_string)
+    {
+        temp_mates.reset(new (std::nothrow) std::set<T>[obj.m_capacity + 1]);
+        if (!temp_data || !temp_parent || !temp_tree_size || !temp_mates)
+        {
+            return *this;
+        }
+    }
+    else if (!temp_data || !temp_parent || !temp_tree_size)
     {
         return *this;
     }
@@ -191,6 +236,10 @@ inline DisjointSet<T>& DisjointSet<T>::operator=(const DisjointSet<T>& obj)
         temp_data[i] = obj.m_data[i];
         temp_parent[i] = obj.m_parent[i];
         temp_tree_size[i] = obj.m_tree_size[i];
+        if constexpr (is_string)
+        {
+            temp_mates[i] = obj.m_mates[i];
+        }
     }
     // 移动赋值：原子性替换所有成员
     // 此时temp_*持有旧内存，移动后自动释放，不会泄漏
@@ -198,12 +247,12 @@ inline DisjointSet<T>& DisjointSet<T>::operator=(const DisjointSet<T>& obj)
     m_data = std::move(temp_data);
     m_parent = std::move(temp_parent);
     m_tree_size = std::move(temp_tree_size);
+    m_mates = std::move(temp_mates);
     m_capacity = obj.m_capacity;
     m_size = obj.m_size;
     return *this;
 }
 
-// 移动赋值运算符：转移资源，高效
 template <typename T>
 inline DisjointSet<T>& DisjointSet<T>::operator=(DisjointSet<T>&& obj) noexcept
 {
@@ -217,9 +266,10 @@ inline DisjointSet<T>& DisjointSet<T>::operator=(DisjointSet<T>&& obj) noexcept
     m_parent = std::move(obj.m_parent);
     m_map = std::move(obj.m_map);
     m_tree_size = std::move(obj.m_tree_size);
+    m_mates = std::move(obj.m_mates);
     m_capacity = obj.m_capacity;
     m_size = obj.m_size;
-    // 清空源对象，防止析构时访问已移动的内存
+    // 清空源对象，防止访问已移动的内存
     obj.m_capacity = 0;
     obj.m_size = 0;
     return *this;
@@ -251,6 +301,10 @@ inline bool DisjointSet<T>::insert(const T& value)
     m_parent[m_size] = 0;     // 0表示根节点(无父节点)
     m_tree_size[m_size] = 1;  // 初始树大小为1
     m_map[value] = m_size;    // 建立双向映射
+    if constexpr (std::is_same_v<T, std::string>)
+    {
+        m_mates[m_size].insert(value);
+    }
     return true;
 }
 
@@ -277,6 +331,17 @@ inline void DisjointSet<T>::print() const
         std::print("{}\t", i);
     }
     std::println();
+}
+
+template <>
+inline void DisjointSet<std::string>::print() const
+{
+    auto [max_id, size] = find_max();
+    for (const auto& i : m_mates[max_id])
+    {
+        std::print("{} ", i);
+    }
+    std::println("\nsize = {}", size);
 }
 
 // find: 查找元素的根节点，带路径压缩(Path Compression)优化
@@ -365,12 +430,20 @@ inline bool DisjointSet<T>::union_set(const T& value1, const T& value2)
 
     // 按树的大小合并：小树挂到大树下
     // 比较两棵树的大小，决定谁作为子树
+
+    constexpr bool is_string = std::is_same_v<T, std::string>;
     if (m_tree_size[*find_value1] < m_tree_size[*find_value2])
     {
         // value1的树更小，将其根节点挂到value2的根节点下
         // 这样做的目的是保持树的平衡，避免大树成为小树的子树导致深度增加
         m_parent[*find_value1] = *find_value2;
         m_tree_size[*find_value2] = m_tree_size[*find_value2] + m_tree_size[*find_value1];
+        if constexpr (is_string)
+        {
+            m_mates[*find_value2].insert(m_mates[*find_value1].begin(),
+                                         m_mates[*find_value1].end());
+            m_mates[*find_value1].clear();
+        }
     }
     else
     {
@@ -378,8 +451,13 @@ inline bool DisjointSet<T>::union_set(const T& value1, const T& value2)
         // 相等情况任意选择，这里统一让value2成为子树
         m_parent[*find_value2] = *find_value1;
         m_tree_size[*find_value1] = m_tree_size[*find_value1] + m_tree_size[*find_value2];
+        if constexpr (is_string)
+        {
+            m_mates[*find_value1].insert(m_mates[*find_value2].begin(),
+                                         m_mates[*find_value2].end());
+            m_mates[*find_value2].clear();
+        }
     }
-
     return true;
 }
 
@@ -415,7 +493,6 @@ template <typename T>
 inline bool DisjointSet<T>::grow(const std::size_t new_capacity)
 {
     std::size_t new_alloc;
-
     if (new_capacity > m_capacity)
     {
         // 按指定值扩容：用户明确要求更大的容量
@@ -438,14 +515,22 @@ inline bool DisjointSet<T>::grow(const std::size_t new_capacity)
     std::unique_ptr<T[]> temp_data(new (std::nothrow) T[new_alloc]);
     std::unique_ptr<std::size_t[]> temp_parent(new (std::nothrow) std::size_t[new_alloc]);
     std::unique_ptr<std::size_t[]> temp_tree_size(new (std::nothrow) std::size_t[new_alloc]);
-
-    if (!temp_data || !temp_parent || !temp_tree_size)
+    std::unique_ptr<std::set<T>[]> temp_mates;
+    constexpr bool is_string = std::is_same_v<T, std::string>;
+    if constexpr (is_string)
+    {
+        temp_mates.reset(new (std::nothrow) std::set<T>[new_alloc]);
+        if (!temp_data || !temp_parent || !temp_tree_size || !temp_mates)
+        {
+            return false;
+        }
+    }
+    else if (!temp_data || !temp_parent || !temp_tree_size)
     {
         // 任一分配失败，返回false
         // 此时原对象未被修改，保持原状，保证异常安全
         return false;
     }
-
     // 复制现有数据(保持索引不变)
     // 只复制[1, m_size]范围内的有效数据，新分配的空间保持未初始化状态
     for (std::size_t i = 1; i <= m_size; ++i)
@@ -453,10 +538,15 @@ inline bool DisjointSet<T>::grow(const std::size_t new_capacity)
         temp_data[i] = m_data[i];
         temp_parent[i] = m_parent[i];
         temp_tree_size[i] = m_tree_size[i];
+        if constexpr (is_string)
+        {
+            temp_mates[i] = m_mates[i];
+        }
     }
     m_data = std::move(temp_data);
     m_parent = std::move(temp_parent);
     m_tree_size = std::move(temp_tree_size);
+    m_mates = std::move(temp_mates);
     m_capacity = new_alloc;
     return true;
 }
@@ -473,4 +563,32 @@ template <typename T>
 inline std::size_t DisjointSet<T>::get_capacity() const
 {
     return m_capacity;
+}
+
+template <typename T>
+inline std::tuple<std::size_t, std::size_t> DisjointSet<T>::find_max() const
+{
+    std::size_t max_id = 1;
+    std::size_t size = m_tree_size[1];
+    for (std::size_t i = 1; i <= m_size; ++i)
+    {
+        if (m_tree_size[i] > m_tree_size[max_id])
+        {
+            max_id = i;
+            size = m_tree_size[i];
+        }
+    }
+    return std::make_tuple(max_id, size);
+}
+
+template <typename T>
+inline bool DisjointSet<T>::status() const
+{
+    return m_data && m_parent && m_tree_size;
+}
+
+template <>
+inline bool DisjointSet<std::string>::status() const
+{
+    return m_data && m_parent && m_tree_size && m_mates;
 }

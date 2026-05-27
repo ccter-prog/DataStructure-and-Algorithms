@@ -5,6 +5,7 @@
 enum class GridStatus : std::uint8_t
 {
     Empty,
+    Active,
     Delete
 };
 

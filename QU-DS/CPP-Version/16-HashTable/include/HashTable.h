@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <memory>
 #include <new>
+#include <utility>
 
 template <typename T>
 class HashTable
@@ -11,10 +12,19 @@ class HashTable
     public:
         // 特殊函数
         HashTable(std::size_t size);
+    public:
+        bool full() const;
+        bool insert(const T& value);
+    private:
+        // 私有成员函数
+        bool grow();
+        void find_slot(std::size_t& index) const;
+        void find_slot(const Slot<T>* ptr, std::size_t& index, const std::size_t size) const;
     private:
         // static成员函数
         static consteval bool is_prime(const std::size_t n);
         static consteval std::size_t find_next_prime(std::size_t n);
+        static consteval std::size_t hash(const T& value, const std::size_t size);
     private:
         std::unique_ptr<Slot<T>[]> m_slot;
         std::size_t m_size;
@@ -32,6 +42,77 @@ inline HashTable<T>::HashTable(std::size_t size) : m_size(0), m_remains(0)
         m_remains = prime;
     }
 }
+
+template <typename T>
+inline bool HashTable<T>::full() const
+{
+    return m_remains == 0;
+}
+
+template <typename T>
+inline bool HashTable<T>::insert(const T& value)
+{
+    if (full())
+    {
+        if (!grow())
+        {
+            return false;
+        }
+    }
+    std::size_t index = hash(value, m_size);
+    find_slot(index);
+    m_slot[index].value = value;
+    m_slot[index].status = GridStatus::Active;
+    --m_remains;
+    return true;
+}
+
+template <typename T>
+inline bool HashTable<T>::grow()
+{
+    std::size_t new_alloc_size = find_next_prime(m_size * 2);
+    std::unique_ptr<Slot<T>[]> temp(new (std::nothrow) Slot<T>[new_alloc_size]);
+    if (!temp)
+    {
+        return false;
+    }
+    std::size_t count = 0;
+    for (std::size_t i = 0; i < m_size; ++i)
+    {
+        if (m_slot[i].status == GridStatus::Delete)
+        {
+            continue;
+        }
+        std::size_t index = hash(m_slot[i].value, new_alloc_size);
+        find_slot(temp.get(), index, new_alloc_size);
+        temp[index] = m_slot[i];
+        ++count;
+    }
+    m_slot = std::move(temp);
+    m_size = new_alloc_size;
+    m_remains = new_alloc_size - count;
+    return true;
+}
+
+template <typename T>
+inline void HashTable<T>::find_slot(std::size_t& index) const
+{
+    while (m_slot[index].status != GridStatus::Empty)
+    {
+        index = (index + 1) % m_size;
+    }
+}
+
+template <typename T>
+inline void
+HashTable<T>::find_slot(const Slot<T>* ptr, std::size_t& index, const std::size_t size) const
+{
+    while (ptr[index].status != GridStatus::Empty)
+    {
+        index = (index + 1) % size;
+    }
+}
+
 
 template <typename T>
 inline consteval bool HashTable<T>::is_prime(const std::size_t n)
@@ -58,4 +139,10 @@ inline consteval std::size_t HashTable<T>::find_next_prime(std::size_t n)
         ++n;
     }
     return n;
+}
+
+template <typename T>
+inline consteval std::size_t HashTable<T>::hash(const T& value, const std::size_t size)
+{
+    return value % size;
 }

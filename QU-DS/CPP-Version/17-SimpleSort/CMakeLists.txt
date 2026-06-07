@@ -17,4 +17,10 @@ set(WARNING_FLAGS
 )
 add_compile_options(${WARNING_FLAGS})
 
+add_library(simple_sort_templates INTERFACE)
+target_include_directories(simple_sort_templates
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 add_executable(main ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+target_link_libraries(main PRIVATE simple_sort_templates)

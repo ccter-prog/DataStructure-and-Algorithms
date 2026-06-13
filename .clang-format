@@ -83,6 +83,7 @@ IndentPPDirectives: None
 
 # 命名空间
 FixNamespaceComments: true
+NamespaceIndentation: All
 
 # 保持空行
 KeepEmptyLinesAtTheStartOfBlocks: true

@@ -1,0 +1,40 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "win-msvc-x64-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/${presetName}",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_MAKE_PROGRAM": "D:/Ninja/ninja.exe"
+      }
+    },
+    {
+      "name": "win-msvc-x64-debug",
+      "displayName": "Windows x64 Debug",
+      "description": "使用 MSVC 编译器和 Ninja 构建 (Debug)",
+      "inherits": "win-msvc-x64-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "win-msvc-x64-release",
+      "displayName": "Windows x64 Release",
+      "description": "使用 MSVC 编译器和 Ninja 构建 (Release)",
+      "inherits": "win-msvc-x64-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}

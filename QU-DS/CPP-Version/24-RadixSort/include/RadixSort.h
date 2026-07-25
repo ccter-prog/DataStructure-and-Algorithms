@@ -14,7 +14,9 @@ namespace RadixSort
     template <std::size_t N>
     inline void radix_sort(std::array<int, N>& array);
 
-    inline void move_value_to_first(std::vector<int>& vec, const std::size_t queue_size);
+    inline void move_value_to_first(std::vector<int>& vec,
+                                    const std::size_t delete_count,
+                                    const std::size_t valid_count);
 
     // 定义
     template <std::size_t N>
@@ -52,7 +54,7 @@ namespace RadixSort
                 vector_size[i] = temp_array[i].size() - vector_delete[i];
                 if (vector_delete[i] > vector_size[i])
                 {
-                    move_value_to_first(temp_array[i], vector_size[i]);
+                    move_value_to_first(temp_array[i], vector_delete[i], vector_size[i]);
                     vector_delete[i] = 0;
                 }
             }
@@ -106,12 +108,14 @@ namespace RadixSort
         }
     }
 
-    inline void move_value_to_first(std::vector<int>& vec, const std::size_t vector_size)
+    inline void move_value_to_first(std::vector<int>& vec,
+                                    const std::size_t delete_count,
+                                    const std::size_t valid_count)
     {
-        for (std::size_t i = 0, j = vector_size; j > 0; ++i, --j)
+        for (std::size_t i = 0; i < valid_count; ++i)
         {
-            vec[i] = vec[j];
+            vec[i] = vec[delete_count + i];
         }
-        vec.erase(vec.begin() + vector_size, vec.end());
+        vec.erase(vec.begin() + valid_count, vec.end());
     }
 }  // namespace RadixSort
